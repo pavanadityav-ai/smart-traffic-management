@@ -3,7 +3,7 @@
 const $ = (id) => document.getElementById(id);
 const DENSITY_COLOURS = { "Low": "#3fb950", "Medium": "#d29922", "High": "#f0883e", "Very High": "#f85149" };
 const LANE_COLOURS = ["#58a6ff", "#3fb950", "#d29922", "#f85149", "#bc8cff", "#39c5cf"];
-const FLAG_NAMES = { low_light: "Low light (enhanced)", low_contrast: "Fog / rain / haze (enhanced)",
+const FLAG_NAMES = { low_light: "Low light", low_contrast: "Fog / rain / haze",
                      blurry: "Blurry frame", camera_shake: "Camera shake (stabilised)", frozen: "Camera frozen" };
 
 // Charts still work without the Chart.js CDN (for example offline): they are simply not drawn.
