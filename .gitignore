@@ -7,8 +7,9 @@ venv/
 # Model weights download automatically; do not commit them
 *.pt
 
-# Videos
+# Database, uploads and videos
 data/
+*.db
 *.mp4
 *.avi
 *.mov
