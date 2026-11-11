@@ -127,7 +127,7 @@ def create_app(detector_factory=make_detector, db_path: str | None = None, data_
             detector, n_lanes=lanes, thresholds=thresholds, meters_per_pixel=meters_per_pixel,
             storage=storage, run_id=run_id, alerts=AlertManager(TwilioSMS.from_env()),
             conditioner=FrameConditioner(stabilise=form.get("stabilise", "1") == "1",
-                                         enhance=form.get("enhance", "1") == "1"))
+                                         enhance=form.get("enhance", "0") == "1"))
         job = ProcessingJob(source, pipeline, storage, run_id, pace=form.get("pace", "1") == "1")
         job_id = uuid.uuid4().hex[:12]
         jobs[job_id] = job

@@ -62,18 +62,67 @@ These are simple, explainable models with adjustable values in `traffic/config.p
 
 | Problem | What the system does |
 |---|---|
-| Low light (night) | Detects low brightness; applies contrast enhancement (CLAHE) and gamma brightening before detection |
-| Fog, rain, haze | Detects low contrast; applies CLAHE |
+| Low light (night) | Detects and flags low brightness. Optional contrast enhancement (CLAHE + gamma), off by default because the benchmark showed it did not improve detection (see Results) |
+| Fog, rain, haze | Detects and flags low contrast; the same optional enhancement |
 | Camera shake | Tracks image points with optical flow; if the whole image moves, the shift is smoothed out. If many points stay still, only vehicles moved, so traffic is not mistaken for shake |
 | Occlusion | The tracker keeps a hidden vehicle for 15 frames, so it stays in the queue count and is not counted twice when it reappears |
 | Blurry frame | Flagged (Laplacian variance), so you know the counts are less reliable |
 | Frozen camera | Flagged when the identical frame repeats for 30 frames |
 
-Every condition is shown on the dashboard and stored with the data. The benchmark also measures detection accuracy on darkened images, without and with the enhancement.
+Every condition is shown on the dashboard and stored with the data.
 
 ## Results
 
-*Pending: run `notebooks/benchmark_on_kaggle.ipynb` (YOLOv8 vs Faster R-CNN) and `notebooks/train_emergency_detector.ipynb` (emergency model) on a free Kaggle GPU. The numbers and charts will be added here.*
+### Demo on a real highway video
+
+![YOLOv8s on a highway video: tracked vehicles, per-lane counts and density, signal state](docs/demo_highway_frame.jpg)
+
+*The full pipeline with YOLOv8s on a public highway video ([Traffic Flow In The Highway](https://www.pexels.com/video/traffic-flow-in-the-highway-2103099/), Pexels), resized to 1280×720 and split into 4 lanes. Boxes are tracked vehicles with their IDs; the top labels show each lane's count and density; the signal state is bottom right. Made with [`notebooks/demo_on_kaggle.ipynb`](notebooks/demo_on_kaggle.ipynb).*
+
+- **30 seconds of video (900 frames):** 122 vehicle tracks (97 cars, 22 trucks, 3 buses; a few may be double-counted when the tracker loses a car). Lanes 1 to 3 held about 6 vehicles on average, so density was **Medium** most of the time, with an estimated clearance time of about 10 to 11 seconds per lane.
+- **Speed:** on Kaggle's CPU, YOLOv8s took about 227 ms per frame (about 4 FPS). Live use on a CPU therefore needs YOLOv8n or frame skipping; on a T4 GPU, YOLOv8s runs at 74 FPS (benchmark below).
+- **Limits you can see in the picture:** the police car with blue lights is labelled only "car", because the standard model has no emergency class (this is why the separate emergency model exists). Vans are often labelled "truck". Equal vertical lanes do not follow the road's perspective, and lane 4 is mostly the hard shoulder.
+
+![Vehicles and clearance time per lane over time, read back from SQLite](docs/demo_lanes_over_time.png)
+
+### YOLOv8 vs Faster R-CNN
+
+500 COCO val2017 images that contain vehicles, official COCO evaluation, Tesla T4 GPU ([`benchmark/compare_models.py`](benchmark/compare_models.py), raw numbers in [`results/benchmark.json`](results/benchmark.json)).
+
+| Model | mAP@0.5 | mAP@0.5:0.95 | FPS | ms / image | Parameters |
+|---|---|---|---|---|---|
+| YOLOv8n | 0.616 | 0.416 | 95.6 | 10.5 | 3.2 M |
+| YOLOv8s | 0.681 | 0.482 | 74.3 | 13.5 | 11.2 M |
+| YOLOv8m | 0.723 | 0.529 | 31.9 | 31.4 | 25.9 M |
+| Faster R-CNN (R50-FPN v2) | **0.788** | **0.544** | 4.2 | 239.0 | 43.7 M |
+
+AP@0.5:0.95 per vehicle type:
+
+| Model | Car | Motorcycle | Bus | Truck |
+|---|---|---|---|---|
+| YOLOv8n | 0.379 | 0.426 | 0.592 | 0.266 |
+| YOLOv8s | 0.447 | 0.486 | 0.662 | 0.332 |
+| YOLOv8m | 0.494 | 0.539 | 0.693 | 0.391 |
+| Faster R-CNN | 0.508 | 0.522 | 0.708 | 0.440 |
+
+What this shows:
+
+- **Faster R-CNN is the most accurate, but too slow for live video:** 4 FPS on a T4, while a camera sends 25–30 frames per second.
+- **YOLOv8m is the best balance for a junction camera:** 92% of Faster R-CNN's mAP@0.5 at 7.6 times the speed. **YOLOv8n** is three times faster again, which suits a CPU or an edge device, at lower accuracy.
+- **Trucks are the hardest class for every model**, buses the easiest. (Trucks vary a lot in shape and size, which is a likely reason.)
+
+### Low-light test
+
+The same 500 images, darkened to simulate night, without and with the app's low-light enhancement (CLAHE + gamma). mAP@0.5:
+
+| Model | Normal | Dark | Dark + enhancement |
+|---|---|---|---|
+| YOLOv8n | 0.616 | 0.537 | 0.505 |
+| YOLOv8s | 0.681 | 0.602 | 0.577 |
+| YOLOv8m | 0.723 | 0.674 | 0.665 |
+| Faster R-CNN | 0.788 | 0.701 | 0.707 |
+
+**Finding:** darkness lowered accuracy by 5 to 9 points, and the enhancement **did not help**. It made YOLOv8 slightly worse and helped Faster R-CNN by less than one point. So the app still detects and flags low light, but the enhancement is now **off by default** (it can be switched on in the dashboard). A better fix would be training on real night-time images.
 
 ## REST API
 
@@ -101,7 +150,7 @@ Open http://127.0.0.1:5000, upload a traffic video (or enter `0` for a webcam, o
 
 **SMS alerts (optional):** set `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_FROM_NUMBER` and `ALERT_TO_NUMBER` before starting the app. Without them, alerts are sound-only.
 
-**Tests** (57 tests; no GPU, video or YOLO needed, a fake detector is used):
+**Tests** (58 tests; no GPU, video or YOLO needed, a fake detector is used):
 
 ```bash
 pip install pytest
