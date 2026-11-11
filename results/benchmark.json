@@ -1,0 +1,90 @@
+{
+  "dataset": "COCO val2017, vehicle classes (car, motorcycle, bus, truck)",
+  "images": 500,
+  "device": "Tesla T4",
+  "date": "2026-11-11",
+  "models": [
+    {
+      "name": "YOLOv8n",
+      "map50": 0.6163,
+      "map50_95": 0.4157,
+      "ap_per_class": {
+        "car": 0.379,
+        "motorcycle": 0.4259,
+        "bus": 0.5918,
+        "truck": 0.266
+      },
+      "inference_ms": 10.5,
+      "fps": 95.6,
+      "params_m": 3.2
+    },
+    {
+      "name": "YOLOv8s",
+      "map50": 0.6811,
+      "map50_95": 0.4817,
+      "ap_per_class": {
+        "car": 0.4467,
+        "motorcycle": 0.4861,
+        "bus": 0.6624,
+        "truck": 0.3316
+      },
+      "inference_ms": 13.5,
+      "fps": 74.3,
+      "params_m": 11.2
+    },
+    {
+      "name": "YOLOv8m",
+      "map50": 0.7234,
+      "map50_95": 0.5293,
+      "ap_per_class": {
+        "car": 0.4943,
+        "motorcycle": 0.5389,
+        "bus": 0.6934,
+        "truck": 0.3907
+      },
+      "inference_ms": 31.4,
+      "fps": 31.9,
+      "params_m": 25.9
+    },
+    {
+      "name": "Faster R-CNN (R50-FPN v2)",
+      "map50": 0.7878,
+      "map50_95": 0.5444,
+      "ap_per_class": {
+        "car": 0.5075,
+        "motorcycle": 0.5221,
+        "bus": 0.708,
+        "truck": 0.4399
+      },
+      "inference_ms": 239.0,
+      "fps": 4.2,
+      "params_m": 43.7
+    }
+  ],
+  "low_light": [
+    {
+      "model": "YOLOv8n",
+      "normal": 0.6163,
+      "dark": 0.5365,
+      "dark_enhanced": 0.5051
+    },
+    {
+      "model": "YOLOv8s",
+      "normal": 0.6811,
+      "dark": 0.6019,
+      "dark_enhanced": 0.5773
+    },
+    {
+      "model": "YOLOv8m",
+      "normal": 0.7234,
+      "dark": 0.6742,
+      "dark_enhanced": 0.6649
+    },
+    {
+      "model": "Faster R-CNN (R50-FPN v2)",
+      "normal": 0.7878,
+      "dark": 0.7008,
+      "dark_enhanced": 0.7065
+    }
+  ]
+}
