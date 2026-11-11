@@ -1,5 +1,8 @@
 # Custom models
 
-Put custom YOLOv8 weights (`.pt` files) here, for example a model fine-tuned with ambulance, fire truck and police classes. They appear automatically in the model menu of the Live Detection page.
+Put custom YOLOv8 weights (`.pt` files) here. They appear in the dashboard's model menus.
 
-The standard `yolov8n.pt`, `yolov8s.pt` and `yolov8m.pt` weights download automatically and do not need to be placed here. Weight files are not committed to Git.
+* **Emergency-vehicle model:** train one with `notebooks/train_emergency_detector.ipynb` (for example `emergency_yolov8s.pt`) and choose it under **Emergency-vehicle model**. The normal YOLOv8 model keeps counting all vehicles; this model adds ambulance, fire truck and police detection.
+* The standard `yolov8n/s/m.pt` and the Faster R-CNN weights download automatically and do not need to be placed here.
+
+Weight files are not committed to Git.
