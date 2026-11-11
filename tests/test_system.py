@@ -61,9 +61,15 @@ def make_video(path, frames=60, fps=25, size=(640, 360)):
 
 def test_low_light_is_detected_and_brightened():
     dark = (textured() * 0.15).astype(np.uint8)
-    out, flags = FrameConditioner().process(dark)
+    out, flags = FrameConditioner(enhance=True).process(dark)
     assert flags["low_light"]
     assert out.mean() > dark.mean() * 1.5
+
+
+def test_enhancement_is_off_by_default():
+    dark = (textured() * 0.15).astype(np.uint8)
+    out, flags = FrameConditioner().process(dark)
+    assert flags["low_light"] and np.array_equal(out, dark)
 
 
 def test_normal_frame_is_not_changed():
