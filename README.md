@@ -93,6 +93,6 @@ models/                      optional custom weights (.pt files are not committe
 
 ## Credits
 
-Team project at Mohan Babu University. My role in the original project: model selection (YOLOv8 n, s and m) and feature design (density thresholds and signal-timing rules). The improvements and tests in this version were written with AI assistance (Claude).
+Team project at Mohan Babu University. My role in the original project: I wrote the project specification for the team (features, algorithms and tech stack), and built and tested parts of the app using AI tools. The improvements and tests in this version were written with AI assistance (Claude).
 
 Built with [Ultralytics YOLOv8](https://github.com/ultralytics/ultralytics), OpenCV and Streamlit.
