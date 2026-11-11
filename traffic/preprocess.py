@@ -1,8 +1,10 @@
 """
 Edge-case handling before detection.
 
-  Low light            mean brightness is low   -> contrast enhancement (CLAHE) + gamma brightening
-  Fog, rain, haze      grey-level contrast low  -> CLAHE
+  Low light            mean brightness is low   -> flagged; optional CLAHE + gamma brightening
+  Fog, rain, haze      grey-level contrast low  -> flagged; optional CLAHE
+                       (the enhancement is off by default: the benchmark showed it
+                       lowered YOLOv8 accuracy on darkened images)
   Camera shake         whole frame shifts between frames -> shift is smoothed out
                        (points are tracked with optical flow; if many of them stay still, only
                        vehicles moved; otherwise RANSAC finds the shift shared by most points)
@@ -52,7 +54,8 @@ def global_shift(prev: np.ndarray, cur: np.ndarray) -> np.ndarray:
 
 
 class FrameConditioner:
-    def __init__(self, stabilise: bool = True, enhance: bool = True) -> None:
+    # enhance is off by default: in the benchmark (results/benchmark.json) it lowered YOLOv8 accuracy on dark images
+    def __init__(self, stabilise: bool = True, enhance: bool = False) -> None:
         self.stabilise = stabilise
         self.enhance = enhance
         self._prev_small = None
