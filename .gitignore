@@ -1,0 +1,15 @@
+__pycache__/
+*.pyc
+.pytest_cache/
+.venv/
+venv/
+
+# Model weights download automatically; do not commit them
+*.pt
+
+# Videos
+data/
+*.mp4
+*.avi
+*.mov
+*.mkv
