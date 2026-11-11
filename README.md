@@ -33,7 +33,7 @@ flowchart LR
 | Vehicle detection and counting | YOLOv8 (n/s/m) or Faster R-CNN; car, motorcycle, bus, truck; a tracker counts each vehicle once | `traffic/detection.py`, `traffic/tracking.py` |
 | Density classification per lane | Low / Medium / High / Very High from the vehicle count in each lane (thresholds adjustable) | `traffic/analysis.py` |
 | Road clearance time | Queue length (weighted by vehicle type) ÷ average speed, plus start-up time; speed measured from tracks when the camera is calibrated | `traffic/analysis.py` |
-| Emergency vehicle detection | A second YOLOv8 model trained on ambulance / fire truck / police images runs alongside the main model | `traffic/detection.py`, `notebooks/train_emergency_detector.ipynb` |
+| Emergency vehicle detection | A second YOLOv8s model, trained on emergency vs non-emergency vehicle images, runs alongside the main model | `traffic/detection.py`, `notebooks/train_emergency_kaggle_dataset.ipynb` |
 | Emergency alert notification | Siren sound in the dashboard; SMS through Twilio (optional); 30 s cooldown | `traffic/alerts.py` |
 | Traffic signal optimisation | Green time = clearance time, kept between a density minimum and 90 s; emergency → green at once | `traffic/signal.py` |
 | Accuracy comparison (YOLOv8 vs R-CNN) | mAP@0.5, mAP@0.5:0.95, AP per vehicle type, FPS and inference time on COCO val2017 vehicles, with charts | `benchmark/compare_models.py`, `notebooks/benchmark_on_kaggle.ipynb` |
@@ -81,9 +81,20 @@ Every condition is shown on the dashboard and stored with the data.
 
 - **30 seconds of video (900 frames):** 122 vehicle tracks (97 cars, 22 trucks, 3 buses; a few may be double-counted when the tracker loses a car). Lanes 1 to 3 held about 6 vehicles on average, so density was **Medium** most of the time, with an estimated clearance time of about 10 to 11 seconds per lane.
 - **Speed:** on Kaggle's CPU, YOLOv8s took about 227 ms per frame (about 4 FPS). Live use on a CPU therefore needs YOLOv8n or frame skipping; on a T4 GPU, YOLOv8s runs at 74 FPS (benchmark below).
-- **Limits you can see in the picture:** the police car with blue lights is labelled only "car", because the standard model has no emergency class (this is why the separate emergency model exists). Vans are often labelled "truck". Equal vertical lanes do not follow the road's perspective, and lane 4 is mostly the hard shoulder.
+- **Limits you can see in the picture:** the police car with blue lights is labelled only "car", because the standard model has no emergency class (the separate emergency model fixes this; see below). Vans are often labelled "truck". Equal vertical lanes do not follow the road's perspective, and lane 4 is mostly the hard shoulder.
 
 ![Vehicles and clearance time per lane over time, read back from SQLite](docs/demo_lanes_over_time.png)
+
+### Emergency-vehicle model
+
+![The emergency model on the highway video: the police car is boxed in red](docs/demo_emergency_frame.jpg)
+
+*The same video with the main YOLOv8s model plus my emergency model. The police car is boxed in red as "emergency vehicle", and the signal switches to a 90 s emergency green.*
+
+- **Training:** YOLOv8s, 50 epochs on a Kaggle T4 (about 26 minutes), on a public Kaggle dataset of emergency (EV) and non-emergency (NEV) vehicles (CC BY-SA 4.0): 2,176 training and 544 validation images. 20 invalid label lines were removed first ([notebook](notebooks/train_emergency_kaggle_dataset.ipynb)).
+- **Validation score: mAP@0.5 = 0.995, mAP@0.5:0.95 = 0.969. This number is not trustworthy.** I checked with image hashes: 72% of validation images have a near-copy in the training set (41% are exact copies), so the model had mostly seen them already ([check notebook](notebooks/check_emergency_model.ipynb)).
+- **Test on unseen video:** on the highway video above (not used in training), the model flagged an emergency vehicle in 242 of 900 frames, all between seconds 13 and 22, which is when the police car is in view, and raised one alert. In the frames I checked, only the police car was flagged.
+- **Honest conclusion:** the model works on this one example, but one video with one police car is not a full evaluation. A test set from different cameras, with ambulances and fire trucks, is needed before trusting it.
 
 ### YOLOv8 vs Faster R-CNN
 
@@ -176,7 +187,7 @@ traffic/storage.py             SQLite database
 traffic/pipeline.py            per-frame pipeline and background job
 templates/, static/            dashboard, history and comparison pages (HTML, CSS, JS)
 benchmark/compare_models.py    YOLOv8 vs Faster R-CNN benchmark
-notebooks/                     Kaggle notebooks: benchmark, emergency-model training
+notebooks/                     Kaggle notebooks: benchmark, demo, emergency-model training and check
 tests/                         unit and system tests
 ```
 
@@ -185,7 +196,7 @@ tests/                         unit and system tests
 - Lanes are equal vertical strips of the frame; a real junction needs lane shapes drawn for its camera.
 - Speed is measured only after calibration (metres per pixel); otherwise typical speeds are used.
 - The signal logic controls one approach; coordinating a full junction (or several) is a next step, for example with reinforcement learning.
-- Emergency detection depends on the training dataset; sirens and flashing lights are not used.
+- Emergency detection was tested on only one real video, and its dataset's validation images overlap with training; sirens and flashing lights are not used.
 
 ## Credits
 
