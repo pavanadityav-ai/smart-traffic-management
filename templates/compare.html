@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}Model comparison · Smart Traffic Management{% endblock %}
+{% block content %}
+<div class="page">
+  <section class="panel">
+    <h2>YOLOv8 vs Faster R-CNN</h2>
+    <p id="dataset" class="muted">Loading results…</p>
+    <div id="missing" class="hidden">
+      <p>No results yet. Run <code>notebooks/benchmark_on_kaggle.ipynb</code> on a free Kaggle GPU, then copy
+        <code>benchmark.json</code> into the <code>results/</code> folder and refresh this page.</p>
+    </div>
+    <div class="table-wrap">
+      <table class="table" id="table"><thead><tr><th>Model</th><th>mAP@0.5</th><th>mAP@0.5:0.95</th><th>FPS</th>
+        <th>Inference (ms)</th><th>Parameters (M)</th></tr></thead><tbody id="rows"></tbody></table>
+    </div>
+  </section>
+
+  <section class="panel grid-2" id="charts">
+    <div><h3>Accuracy (mAP@0.5)</h3><div class="chart-box"><canvas id="map-chart"></canvas></div></div>
+    <div><h3>Speed (frames per second)</h3><div class="chart-box"><canvas id="fps-chart"></canvas></div></div>
+    <div><h3>Accuracy per vehicle type (AP@0.5:0.95)</h3><div class="chart-box"><canvas id="class-chart"></canvas></div></div>
+    <div><h3>Low light: mAP@0.5 on darkened images</h3><div class="chart-box"><canvas id="light-chart"></canvas></div>
+      <p class="muted small">Same images darkened artificially, without and with the low-light enhancement used in the app.</p></div>
+  </section>
+</div>
+{% endblock %}
+{% block scripts %}<script src="{{ url_for('static', filename='compare.js') }}"></script>{% endblock %}

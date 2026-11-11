@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}History · Smart Traffic Management{% endblock %}
+{% block content %}
+<div class="page">
+  <section class="panel">
+    <h2>Stored runs (SQLite)</h2>
+    <div class="table-wrap">
+      <table class="table">
+        <thead><tr><th>#</th><th>Started</th><th>Source</th><th>Model</th><th>Lanes</th><th>Frames</th><th>Avg FPS</th><th>Status</th></tr></thead>
+        <tbody id="runs"><tr><td colspan="8" class="muted">Loading…</td></tr></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section id="detail" class="panel hidden">
+    <h2 id="detail-title">Run</h2>
+    <div id="cards" class="cards"></div>
+    <div class="grid-2">
+      <div><h3>Vehicles per lane over time</h3><div class="chart-box"><canvas id="count-chart"></canvas></div></div>
+      <div><h3>Clearance time per lane (s)</h3><div class="chart-box"><canvas id="clearance-chart"></canvas></div></div>
+    </div>
+    <h3>Emergency log</h3>
+    <table class="table small"><thead><tr><th>Video time</th><th>Vehicle</th><th>SMS</th><th>Logged at</th></tr></thead>
+      <tbody id="emergencies"></tbody></table>
+    <p><a id="csv" href="#">Download this run as CSV</a></p>
+  </section>
+</div>
+{% endblock %}
+{% block scripts %}<script src="{{ url_for('static', filename='history.js') }}"></script>{% endblock %}

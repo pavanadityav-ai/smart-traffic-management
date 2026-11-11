@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+{% block title %}Live · Smart Traffic Management{% endblock %}
+{% block content %}
+<div class="layout">
+  <!-- Settings -->
+  <form id="job-form" class="panel settings">
+    <h2>Source</h2>
+    <label class="field">Traffic video
+      <input type="file" name="video" accept=".mp4,.avi,.mov,.mkv">
+    </label>
+    <label class="field">or camera number / stream URL
+      <input type="text" name="source" placeholder="0  or  rtsp://camera-ip/stream">
+    </label>
+
+    <h2>Model</h2>
+    <label class="field">Detector
+      <select name="model" id="model"></select>
+    </label>
+    <label class="field">Emergency-vehicle model
+      <select name="emergency_model" id="emergency-model"><option value="">None (no custom weights in models/)</option></select>
+    </label>
+    <div class="row">
+      <label class="field">Confidence <input type="number" name="confidence" value="0.4" min="0.05" max="0.95" step="0.05"></label>
+      <label class="field">Lanes <input type="number" name="lanes" value="3" min="1" max="6"></label>
+    </div>
+
+    <h2>Density per lane</h2>
+    <div class="row three">
+      <label class="field">Medium from <input type="number" name="low" value="5" min="1"></label>
+      <label class="field">High from <input type="number" name="medium" value="10" min="1"></label>
+      <label class="field">Very high from <input type="number" name="high" value="15" min="1"></label>
+    </div>
+    <label class="field">Metres per pixel (0 = not calibrated)
+      <input type="number" name="meters_per_pixel" value="0" min="0" step="0.001">
+    </label>
+
+    <h2>Edge cases</h2>
+    <label class="check"><input type="checkbox" id="stabilise" checked> Stabilise camera shake</label>
+    <label class="check"><input type="checkbox" id="enhance" checked> Enhance low light / fog</label>
+
+    <div class="buttons">
+      <button type="submit" id="start" class="primary">▶ Start</button>
+      <button type="button" id="stop" disabled>■ Stop</button>
+    </div>
+    <p id="status" class="muted">Choose a video and press Start.</p>
+    <div class="progress"><div id="progress-bar"></div></div>
+    <p id="sms-status" class="muted small"></p>
+  </form>
+
+  <!-- Video and charts -->
+  <section class="panel video-panel">
+    <div id="emergency-banner" class="banner hidden">🚨 EMERGENCY VEHICLE: <span id="emergency-types"></span></div>
+    <div class="video-box">
+      <img id="stream" alt="Annotated traffic video">
+      <div id="placeholder" class="placeholder">The annotated video appears here</div>
+    </div>
+    <div id="flags" class="flags"></div>
+    <div class="charts">
+      <div><h3>Vehicles per lane</h3><canvas id="lane-chart"></canvas></div>
+      <div><h3>Processing speed (FPS)</h3><canvas id="fps-chart"></canvas></div>
+    </div>
+  </section>
+
+  <!-- Signal and lanes -->
+  <section class="panel side">
+    <div class="signal">
+      <div class="light-box">
+        <span class="lamp red" id="lamp-RED"></span>
+        <span class="lamp yellow" id="lamp-YELLOW"></span>
+        <span class="lamp green" id="lamp-GREEN"></span>
+      </div>
+      <div>
+        <div id="phase" class="phase">—</div>
+        <div id="countdown" class="countdown">--</div>
+        <div id="reason" class="muted small"></div>
+      </div>
+    </div>
+    <div class="stats">
+      <div class="stat"><span>Overall density</span><strong id="density">—</strong></div>
+      <div class="stat"><span>Clearance time</span><strong id="clearance">—</strong></div>
+      <div class="stat"><span>Next green / red</span><strong id="next-timing">—</strong></div>
+      <div class="stat"><span>Inference</span><strong id="inference">—</strong></div>
+    </div>
+    <h3>Lanes</h3>
+    <div id="lanes" class="lanes"></div>
+    <h3>Unique vehicles counted</h3>
+    <div id="unique" class="muted small">—</div>
+    <h3>Alerts</h3>
+    <table class="table small"><thead><tr><th>Time</th><th>Vehicle</th><th>Sound</th><th>SMS</th></tr></thead>
+      <tbody id="alerts"></tbody></table>
+  </section>
+</div>
+{% endblock %}
+{% block scripts %}<script src="{{ url_for('static', filename='dashboard.js') }}"></script>{% endblock %}
