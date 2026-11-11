@@ -8,7 +8,7 @@ Vehicle detectors with one common interface.
 Both standard models are trained on COCO, which has car, motorcycle, bus and
 truck but no ambulance, fire truck or police class. Emergency vehicles are
 detected only by custom YOLOv8 weights trained on an emergency-vehicle dataset
-(see notebooks/train_emergency_detector.ipynb); `supports_emergency` says
+(see notebooks/train_emergency_kaggle_dataset.ipynb); `supports_emergency` says
 whether the loaded model can do it.
 
 ultralytics and torch are imported inside the classes, so the rest of the
